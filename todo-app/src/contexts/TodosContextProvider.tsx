@@ -1,23 +1,32 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { Todo } from "../lib/types";
 
 type TodosContextProviderProps = {
-      children : React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 type TTodosContext = {
-  todos: Todo[],
-  totalNumberOfTodos: number,
-  numberOfCompletedTodos: number,
-  HandleAddTodo: (todoText: string) => void,
-  handleDeleteTodo: (id: number) => void,
-  handleToggleTodo:(id:number) => void
+  todos: Todo[];
+  totalNumberOfTodos: number;
+  numberOfCompletedTodos: number;
+  HandleAddTodo: (todoText: string) => void;
+  handleDeleteTodo: (id: number) => void;
+  handleToggleTodo: (id: number) => void;
 };
 
 export const TodosContext = createContext<TTodosContext | null>(null);
 
-export default function TodosContextProvider({ children }: TodosContextProviderProps) {
-  const [todos, setTodos] = useState<Todo[]>([]);
+export default function TodosContextProvider({
+  children,
+}: TodosContextProviderProps) {
+
+  const [todos, setTodos] = useState<Todo[]>(() => {
+      const savedTodos = localStorage.getItem("todos");
+    if (savedTodos) {
+      return JSON.parse("todos");
+    }
+    else return [];
+  });
 
   const totalNumberOfTodos = todos.length;
   const numberOfCompletedTodos = todos.filter(
@@ -53,6 +62,11 @@ export default function TodosContextProvider({ children }: TodosContextProviderP
       })
     );
   };
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
   return (
     <TodosContext.Provider
       value={{
