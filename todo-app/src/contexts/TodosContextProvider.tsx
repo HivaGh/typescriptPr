@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { Todo } from "../lib/types";
+import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
 
 type TodosContextProviderProps = {
   children: React.ReactNode;
@@ -16,17 +17,19 @@ type TTodosContext = {
 
 export const TodosContext = createContext<TTodosContext | null>(null);
 
+const getInitialTodos = () => {
+  const savedTodos = localStorage.getItem("todos");
+  if (savedTodos) {
+    return JSON.parse(savedTodos);
+  } else return [];
+};
+
 export default function TodosContextProvider({
   children,
 }: TodosContextProviderProps) {
+  const [todos, setTodos] = useState<Todo[]>(getInitialTodos);
 
-  const [todos, setTodos] = useState<Todo[]>(() => {
-      const savedTodos = localStorage.getItem("todos");
-    if (savedTodos) {
-      return JSON.parse("todos");
-    }
-    else return [];
-  });
+  const { isAuthenticated } = useKindeAuth();
 
   const totalNumberOfTodos = todos.length;
   const numberOfCompletedTodos = todos.filter(
@@ -34,7 +37,7 @@ export default function TodosContextProvider({
   ).length;
 
   const HandleAddTodo = (todoText: string) => {
-    if (todos.length >= 3) {
+    if (todos.length >= 3 && !isAuthenticated) {
       alert("Login to add more than 3 todos");
     } else {
       setTodos((prev) => [
